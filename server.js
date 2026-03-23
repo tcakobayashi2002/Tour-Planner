@@ -99,7 +99,7 @@ Respond STRICTLY with valid JSON. Do not include markdown backticks like \`\`\`j
 
         console.log("Calling Scitely API for:", destinations);
 
-        const response = await fetch("https://api.scitely.org/v1/generate", {
+        const response = await fetch("https://api.scitely.com/v1/generate", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
