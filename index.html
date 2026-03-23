@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vietnam Tour Planner - Craft Your Perfect Journey</title>
+    <meta name="description"
+        content="Plan your ideal trip to Vietnam with customized itineraries, interactive maps, and cultural insights. Start your journey today!">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
+        rel="stylesheet">
+
+    <!-- Leaflet CSS for Interactive Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="mainNav">
+        <div class="container nav-container">
+            <a href="#" class="logo">
+                <span class="logo-icon">🌿</span>
+                <span class="logo-text">Vietnam<br>Tour Planner</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#hero">Home</a></li>
+                <li><a href="#plan">Plan a Tour</a></li>
+                <li><a href="#itineraries">Itineraries</a></li>
+                <li><a href="#features">Explore</a></li>
+            </ul>
+            <a href="#booking" class="btn btn-primary">Book Now</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero" id="hero">
+        <div class="hero-overlay"></div>
+        <div class="container hero-content">
+            <h1 class="hero-title">Discover Vietnam Your Way</h1>
+            <p class="hero-subtitle">From the mist-shrouded peaks of Sapa to the emerald waters of Ha Long Bay, let us
+                craft an itinerary that fits your dreams, budget, and travel style.</p>
+            <div class="sample-tours" id="sampleTours">
+                <span style="font-size: 0.9rem; margin-right: 0.5rem; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">Try a
+                    Sample Tour:</span>
+                <button type="button" class="chip" data-tour="classic">3 Days Hanoi + Ha Long</button>
+                <button type="button" class="chip" data-tour="central">5 Days Hoi An + Da Nang</button>
+                <button type="button" class="chip" data-tour="south">4 Days HCMC + Mekong</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Tour Planning Form Section -->
+    <section class="tour-planner-section" id="plan">
+        <div class="container">
+            <div class="form-container glass-panel">
+                <h2 class="section-title text-center">Design Your Journey</h2>
+                <p class="section-subtitle text-center">Tell us what you're looking for, and we'll handle the rest.</p>
+
+                <form id="tourForm" class="tour-form">
+                    <div class="form-grid">
+                        <!-- Departure & Dates -->
+                        <div class="form-group position-relative">
+                            <label>Fixed Departure City</label>
+                            <div class="fixed-departure" style="padding: 0.75rem 1rem; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border-radius: 0.5rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                                📍 Can Tho City, Vietnam
+                            </div>
+                            <input type="hidden" id="departureCity" name="departureCity" value="Can Tho City, Vietnam">
+                        </div>
+                        <div class="form-group row-group">
+                            <div class="sub-group">
+                                <label for="startDate">Start Date</label>
+                                <input type="date" id="startDate" name="startDate" required>
+                            </div>
+                            <div class="sub-group">
+                                <label for="endDate">End Date</label>
+                                <input type="date" id="endDate" name="endDate" required>
+                            </div>
+                        </div>
+
+                        <!-- Destinations (Input with Suggestions) -->
+                        <div class="form-group full-width position-relative">
+                            <label for="destinationInput">Preferred Destinations</label>
+                            <div class="destination-input-container">
+                                <input type="text" id="destinationInput" placeholder="Type a destination..."
+                                    autocomplete="off">
+                                <button type="button" id="addDestBtn" class="btn btn-outline"
+                                    style="padding: 0 1rem;">Add</button>
+                            </div>
+                            <ul id="destinationSuggestions" class="suggestions-list hidden"></ul>
+                            <div class="selected-destinations" id="selectedDestinations"></div>
+                            <input type="hidden" name="destinations" id="hiddenDestinations">
+                        </div>
+
+                        <!-- Advanced Options Toggle -->
+                        <div class="advanced-toggle" id="advancedToggle">
+                            <span>+ Provide Exact Budget & Preferences</span>
+                        </div>
+
+                        <div class="advanced-options hidden" id="advancedOptions">
+                            <!-- Travelers & Budget -->
+                            <div class="form-group row-group">
+                                <div class="sub-group">
+                                    <label for="travelersNum">Travelers</label>
+                                    <input type="number" id="travelersNum" name="travelersNum" min="1" max="50"
+                                        value="2" required>
+                                </div>
+                                <div class="sub-group">
+                                    <label for="budgetCap">Budget Cap (Total USD): $<span
+                                            id="budgetAmount">2000</span></label>
+                                    <div class="range-container">
+                                        <input type="range" id="budgetCap" name="budgetCap" min="100" max="10000"
+                                            step="100" value="2000">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Preferences -->
+                            <div class="form-group row-group">
+                                <div class="sub-group">
+                                    <label for="transportPref">Transport Medium</label>
+                                    <select id="transportPref" name="transportPref">
+                                        <option value="flight">✈️ Flight (Fastest)</option>
+                                        <option value="train">🚆 Train (Scenic)</option>
+                                        <option value="bus">🚌 Bus (Budget)</option>
+                                        <option value="car">🚗 Private Car / Driving</option>
+                                        <option value="mixed" selected>🔄 Mixed (Best of All)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Travel Themes & Specialization</label>
+                                <div
+                                    style="display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.5rem; margin-bottom: 0.75rem;">
+                                    <label style="cursor: pointer;"><input type="checkbox" value="Cultural"
+                                            class="theme-check"> Cultural</label>
+                                    <label style="cursor: pointer;"><input type="checkbox" value="Adventure"
+                                            class="theme-check"> Adventure</label>
+                                    <label style="cursor: pointer;"><input type="checkbox" value="Family-friendly"
+                                            class="theme-check"> Family</label>
+                                    <label style="cursor: pointer;"><input type="checkbox" value="Food Tours"
+                                            class="theme-check"> Foodie</label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="otherSpecs">Other Specifications</label>
+                                <textarea id="otherSpecs" name="otherSpecs" rows="1"
+                                    placeholder="e.g., prefer halal food..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-submit full-width" id="generateBtn">
+                        <span class="btn-text">Generate My Itinerary <span class="sparkle">✨</span></span>
+                        <span class="loader hidden"></span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Suggested Itineraries Section (Hidden initially) -->
+    <section class="itineraries-section hidden" id="itineraries">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Your Tailored Itineraries</h2>
+                <p class="section-subtitle">Based on your preferences, we've crafted the following perfect routes for
+                    you.</p>
+            </div>
+
+            <div class="itinerary-grid" id="itineraryResults">
+                <!-- Itinerary Cards will be injected by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Map Section -->
+    <section class="map-section" id="mapSection">
+        <div class="container">
+            <div class="grid-2-col align-center">
+                <div class="map-content">
+                    <h2 class="section-title">Visualize Your Route</h2>
+                    <p class="section-subtitle">See exactly where your journey will take you across Vietnam's diverse
+                        landscapes.</p>
+                    <ul class="feature-list">
+                        <li>📍 Click destinations for photos and details</li>
+                        <li>🛣️ View travel routes and estimated times</li>
+                        <li>🌤️ Check local weather conditions in real-time</li>
+                    </ul>
+                    <button class="btn btn-outline mt-4" id="viewFullMapBtn">View Fullscreen Map</button>
+                </div>
+                <div class="map-container glass-panel">
+                    <div id="vietnamMap"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Additional Features Sections -->
+    <section class="features-section bg-light" id="features">
+        <div class="container">
+
+            <!-- Weather Forecast -->
+            <div class="weather-widget-container mb-10">
+                <h3 class="subsection-title">Current Weather in Top Destinations</h3>
+                <div class="weather-grid" id="weatherWidgets">
+                    <!-- Weather cards will be injected here -->
+                </div>
+            </div>
+
+            <div class="grid-2-col gap-xl">
+                <!-- Cultural Tips -->
+                <div class="cultural-tips">
+                    <h3 class="subsection-title">Cultural Insights 🏮</h3>
+                    <div class="tips-accordion">
+                        <div class="tip-card">
+                            <h4>Local Etiquette</h4>
+                            <p>When visiting temples or pagodas, ensure your shoulders and knees are covered. Remove
+                                your shoes before entering someone's home.</p>
+                        </div>
+                        <div class="tip-card">
+                            <h4>Street Food Guide</h4>
+                            <p>Follow the locals! Eat where it's crowded. Try Pho for breakfast, Banh Mi for lunch, and
+                                finish with a refreshing iced coffee with condensed milk (Ca phe sua da).</p>
+                        </div>
+                        <div class="tip-card">
+                            <h4>Crossing the Street</h4>
+                            <p>Walk slowly and steadily. Do not stop abruptly or step back; motorbikes will naturally
+                                flow around you.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Local News Section -->
+                <div class="reviews-section">
+                    <h3 class="subsection-title">Local Destination News 📰</h3>
+                    <div class="review-carousel glass-panel dark" id="localNewsContainer">
+                        <div class="review-card active">
+                            <p class="review-text" style="font-size: 1rem; font-style: normal;">Generate an itinerary to
+                                see the latest local events, news, and travel advisories for your chosen destinations!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Booking Integration -->
+    <section class="booking-section" id="booking">
+        <div class="container text-center">
+            <h2 class="section-title text-white">Ready to Turn This Plan into Reality?</h2>
+            <p class="section-subtitle text-white-70">Connect with our local travel experts to finalize your booking or
+                save the itinerary for later.</p>
+            <div class="booking-actions mt-6">
+                <button class="btn btn-accent btn-large">Connect with Local Expert</button>
+                <button class="btn btn-outline btn-large text-white border-white">Save Itinerary to PDF</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container text-center">
+            <p>&copy; 2026 Vietnam Tour Planner. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Custom script -->
+    <script src="script.js"></script>
+</body>
+
+</html>
