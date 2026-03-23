@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    
+
     const ORS_API_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjBkM2M2OGEyZWM1MzQ0MjhiODkxNTBiODQzYWM0N2IwIiwiaCI6Im11cm11cjY0In0=";
 
     // --- Navigation Scroll Effect ---
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (advToggle) {
         advToggle.addEventListener('click', () => {
             advOptions.classList.toggle('hidden');
-            if(advOptions.classList.contains('hidden')) {
+            if (advOptions.classList.contains('hidden')) {
                 advToggle.innerHTML = "<span>+ Provide Exact Budget & Preferences</span>";
             } else {
                 advToggle.innerHTML = "<span>- Hide Preferences</span>";
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const budgetDisplay = document.getElementById('budgetAmount');
 
     budgetSlider.addEventListener('input', (e) => {
-        if(budgetDisplay) budgetDisplay.textContent = Number(e.target.value).toLocaleString();
+        if (budgetDisplay) budgetDisplay.textContent = Number(e.target.value).toLocaleString();
     });
 
     // --- Initial Config ---
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let mapMarkers = [];
     let dayFeatureGroups = {}; // Stores layers per day for interactivity
 
-    if(document.getElementById('vietnamMap')) {
+    if (document.getElementById('vietnamMap')) {
         map = L.map('vietnamMap').setView([16.047079, 108.206230], 5);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap contributors',
@@ -51,8 +51,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- FIXED DEPARTURE & Tags State ---
-    let departureData = { name: "Can Tho City", coords: [105.7836, 10.0280] }; 
-    let destinationsList = []; 
+    let departureData = { name: "Can Tho City", coords: [105.7836, 10.0280] };
+    let destinationsList = [];
 
     const destInput = document.getElementById('destinationInput');
     const destSuggestions = document.getElementById('destinationSuggestions');
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const url = `https://api.openrouteservice.org/geocode/autocomplete?api_key=${ORS_API_KEY}&text=${encodeURIComponent(text)}&boundary.country=VN`;
                 const response = await fetch(url);
                 const data = await response.json();
-                
+
                 listElement.innerHTML = '';
                 if (data.features && data.features.length > 0) {
                     data.features.slice(0, 5).forEach(feature => {
@@ -110,14 +110,14 @@ document.addEventListener('DOMContentLoaded', () => {
     addDestBtn.addEventListener('click', () => {
         const val = destInput.value.trim();
         if (!val) return;
-        
+
         let lon = destInput.dataset.lon;
         let lat = destInput.dataset.lat;
         let name = destInput.dataset.name || val;
-        
+
         destinationsList.push({ name, coords: lon && lat ? [parseFloat(lon), parseFloat(lat)] : null });
         updateDestinationsUI();
-        
+
         destInput.value = '';
         delete destInput.dataset.lon;
         delete destInput.dataset.lat;
@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     destInput.addEventListener('keypress', (e) => {
-        if(e.key === 'Enter') {
+        if (e.key === 'Enter') {
             e.preventDefault();
             addDestBtn.click();
         }
@@ -139,9 +139,9 @@ document.addEventListener('DOMContentLoaded', () => {
             tag.innerHTML = `<span>${dest.name}</span> <button type="button" data-idx="${idx}">&times;</button>`;
             selectedDestContainer.appendChild(tag);
         });
-        
+
         hiddenDestInput.value = destinationsList.map(d => d.name).join(',');
-        
+
         selectedDestContainer.querySelectorAll('button').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const idx = parseInt(e.target.dataset.idx);
@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.addEventListener('click', (e) => {
-        if(e.target !== destInput) destSuggestions.classList.add('hidden');
+        if (e.target !== destInput) destSuggestions.classList.add('hidden');
     });
 
     // Default Dates
@@ -172,10 +172,10 @@ document.addEventListener('DOMContentLoaded', () => {
     sampleTours.forEach(chip => {
         chip.addEventListener('click', () => {
             const tourType = chip.getAttribute('data-tour');
-            
+
             destinationsList = []; // clear
-            
-            if(tourType === 'classic') {
+
+            if (tourType === 'classic') {
                 destinationsList.push({ name: "Hanoi", coords: [105.852449, 21.02945] });
                 destinationsList.push({ name: "Ha Long Bay", coords: [107.0429, 20.9101] });
                 startInput.valueAsDate = tomorrow;
@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 endInput.valueAsDate = ed;
             }
             updateDestinationsUI();
-            
+
             document.getElementById('plan').scrollIntoView({ behavior: 'smooth' });
         });
     });
@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
         // Validation
         const tStartDate = new Date(startInput.value);
         const tEndDate = new Date(endInput.value);
@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const budget = parseInt(formData.get('budgetCap'));
         const travelers = parseInt(formData.get('travelersNum'));
         const transport = formData.get('transportPref');
-        
+
         const specsRaw = formData.get('otherSpecs');
         const checkedThemes = Array.from(document.querySelectorAll('.theme-check:checked')).map(cb => cb.value).join(', ');
         const specs = checkedThemes ? `Themes: ${checkedThemes}. Other Custom: ${specsRaw}` : specsRaw;
@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const plan = await generateAIItinerary(depName, destsName, days, budget, travelers, transport, specs);
             const routeStats = await drawMapRoute(plan, transport);
-            
+
             renderPlan(plan, travelers, routeStats);
             renderNews(plan.localNews);
 
@@ -272,100 +272,27 @@ document.addEventListener('DOMContentLoaded', () => {
     async function generateAIItinerary(dep, dests, days, budget, travelers, transport, specs) {
         // Create a unique cache key based on inputs
         const cacheKey = JSON.stringify({ dep, dests, days, budget, travelers, transport, specs });
-        
+
         if (itineraryCache.has(cacheKey)) {
             console.log("Serving itinerary from cache!");
             return itineraryCache.get(cacheKey);
         }
 
-        const prompt = `You are a professional travel agent. 
-Create exactly ONE customized tour itinerary for Vietnam with a STRICT 7-point structure:
-overview, schedule, transport, accommodation, activities, budgetBreakdown, practicalNotes.
+        const url = '/generate-itinerary'; // Auto-detects whether it's on localhost or Render
 
-Departure: ${dep || "Vietnam"}
-Destinations: ${dests || "Vietnam"}
-Duration: ${days} days
-Travelers: ${travelers}
-Total Budget Cap: $${budget}
-Transport Preference: ${transport}
-Themes & Specs: ${specs}
-
-Respond STRICTLY with valid JSON. Do not include markdown backticks like \`\`\`json.
-{
-  "overview": {
-    "title": "Strike Catchy Title",
-    "description": "Short vision of the trip",
-    "totalDays": ${days},
-    "budgetEfficiency": "Economy / Mid-range / Luxury"
-  },
-  "schedule": [
-    {
-      "day": 1,
-      "location": "City Name",
-      "activities": ["Activity 1", "Activity 2"],
-      "transport": {
-        "mode": "Flight or Train or Bus or Car",
-        "time": "Est duration",
-        "cost": "Est USD"
-      },
-      "accommodation": {
-        "name": "Hotel Name",
-        "location": "District",
-        "price": "Est USD per night"
-      }
-    }
-  ],
-  "activityHighlights": [
-    { "category": "Cultural", "details": "Desc" },
-    { "category": "Adventure", "details": "Desc" },
-    { "category": "Food", "details": "Desc" },
-    { "category": "Family", "details": "Desc" }
-  ],
-  "budgetBreakdown": {
-    "transport": "Est Total USD",
-    "accommodation": "Est Total USD",
-    "activities": "Est Total USD",
-    "meals": "Est Total USD"
-  },
-  "practicalNotes": {
-    "localTips": ["Tip 1", "Tip 2"],
-    "weather": "Seasonal expectations",
-    "emergency": {
-      "police": "113",
-      "medical": "115",
-      "touristSupport": "Hotline"
-    }
-  },
-  "placesToVisit": [
-    {
-      "name": "Location Name",
-      "city": "City",
-      "description": "Short description",
-      "price": "Entry price"
-    }
-  ],
-  "localNews": [
-    { "headline": "News related to ${dests}", "snippet": "Desc" }
-  ],
-  "travelAdvisories": ["Direct safety warning if any"]
-}`;
-
-        const url = 'https://api.scitely.com/v1/generate';
-        const SCITELY_API_KEY = "sk-scitely-YOUR_API_KEY"; // User provided this key to hardcode
-        
         try {
             const response = await fetch(url, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${SCITELY_API_KEY}`
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    model: "scitely-fluent", // Use appropriate Scitely model if specified
-                    messages: [
-                        { role: "system", content: "You are a professional travel agent. Output JSON only." },
-                        { role: "user", content: prompt }
-                    ]
+                    departure: dep,
+                    destinations: dests,
+                    startDate: startInput.value,
+                    endDate: endInput.value,
+                    travelers,
+                    budget,
+                    transport,
+                    specs
                 })
             });
 
@@ -375,35 +302,32 @@ Respond STRICTLY with valid JSON. Do not include markdown backticks like \`\`\`j
             }
 
             const data = await response.json();
-            let textResult = data.choices ? data.choices[0].message.content : (data.response || data.text);
-            textResult = textResult.replace(/\`\`\`json/g, '').replace(/\`\`\`/g, '').trim();
-            const plan = JSON.parse(textResult);
-            
+
             // Save to cache for future repeat clicks
-            itineraryCache.set(cacheKey, plan);
-            
-            return plan;
+            itineraryCache.set(cacheKey, data);
+
+            return data;
         } catch (e) {
             console.error("Fetch Error Detail:", e);
-            throw new Error(e.message || "Failed to communicate with Scitely API. Please try again.");
+            throw new Error(e.message || "Failed to communicate with the server. Please try again.");
         }
     }
 
     async function drawMapRoute(plan, transport) {
         if (!map) return;
-        
+
         if (routeLayer) map.removeLayer(routeLayer);
         mapMarkers.forEach(m => map.removeLayer(m));
         mapMarkers = [];
-        
+
         // Clear day feature groups
         for (let key in dayFeatureGroups) {
             map.removeLayer(dayFeatureGroups[key]);
         }
         dayFeatureGroups = {};
 
-        const mainCoords = [departureData.coords]; 
-        
+        const mainCoords = [departureData.coords];
+
         async function getCoord(text) {
             try {
                 const res = await fetch(`https://api.openrouteservice.org/geocode/search?api_key=${ORS_API_KEY}&text=${encodeURIComponent(text)}`);
@@ -411,7 +335,7 @@ Respond STRICTLY with valid JSON. Do not include markdown backticks like \`\`\`j
                 if (data.features && data.features.length > 0) {
                     return data.features[0].geometry.coordinates;
                 }
-            } catch(e) { }
+            } catch (e) { }
             return null;
         }
 
@@ -423,7 +347,7 @@ Respond STRICTLY with valid JSON. Do not include markdown backticks like \`\`\`j
         for (let i = 0; i < plan.schedule.length; i++) {
             const day = plan.schedule[i];
             const currentCoord = await getCoord(`${day.location}, Vietnam`);
-            
+
             if (currentCoord) {
                 const dayGroup = L.featureGroup().addTo(map);
                 dayFeatureGroups[i] = dayGroup;
@@ -450,7 +374,7 @@ Respond STRICTLY with valid JSON. Do not include markdown backticks like \`\`\`j
                         weight: 4,
                         dashArray: transport === 'flight' ? '10, 10' : ''
                     }).addTo(dayGroup);
-                    
+
                     // Tooltip with cost
                     line.bindTooltip(`$${day.transport.cost} Leg`, { permanent: true, direction: 'center', className: 'leg-tooltip' });
                 }
@@ -471,7 +395,7 @@ Respond STRICTLY with valid JSON. Do not include markdown backticks like \`\`\`j
                         iconSize: [24, 24],
                         iconAnchor: [12, 12]
                     });
-                    const m = L.marker([c[1], c[0]], {icon: customIcon}).addTo(map)
+                    const m = L.marker([c[1], c[0]], { icon: customIcon }).addTo(map)
                         .bindPopup(`<b>${place.name}</b><br><i style="color:var(--primary);">${place.price}</i><br>${place.description}`);
                     mapMarkers.push(m);
                 }
@@ -497,7 +421,7 @@ Respond STRICTLY with valid JSON. Do not include markdown backticks like \`\`\`j
         const itineraryResults = document.getElementById('itineraryResults');
         const card = document.createElement('div');
         card.className = 'itinerary-card';
-        
+
         // 1. Overview
         const getNum = (val) => {
             if (!val) return 0;
@@ -506,10 +430,10 @@ Respond STRICTLY with valid JSON. Do not include markdown backticks like \`\`\`j
             return parseFloat(stripped) || 0;
         };
 
-        const totalEst = getNum(plan.budgetBreakdown.transport) + 
-                         getNum(plan.budgetBreakdown.accommodation) + 
-                         getNum(plan.budgetBreakdown.activities) +
-                         getNum(plan.budgetBreakdown.meals);
+        const totalEst = getNum(plan.budgetBreakdown.transport) +
+            getNum(plan.budgetBreakdown.accommodation) +
+            getNum(plan.budgetBreakdown.activities) +
+            getNum(plan.budgetBreakdown.meals);
 
         const overviewHTML = `
             <div class="trip-overview-grid">
@@ -613,7 +537,7 @@ Respond STRICTLY with valid JSON. Do not include markdown backticks like \`\`\`j
             if (dayFeatureGroups[dayIndex]) {
                 const group = dayFeatureGroups[dayIndex];
                 map.fitBounds(group.getBounds(), { padding: [100, 100], maxZoom: 15 });
-                
+
                 // Open first marker in group
                 group.eachLayer(layer => {
                     if (layer instanceof L.Marker) layer.openPopup();
@@ -637,7 +561,7 @@ Respond STRICTLY with valid JSON. Do not include markdown backticks like \`\`\`j
 
     function generateWeatherWidgets() {
         const weatherContainer = document.getElementById('weatherWidgets');
-        if(!weatherContainer) return;
+        if (!weatherContainer) return;
         weatherContainer.innerHTML = '';
         const mockWeather = [
             { city: 'Hanoi', temp: '24°C', icon: '⛅' },
