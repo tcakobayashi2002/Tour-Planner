@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
-const { GoogleGenAI } = require('@google/genai');
 
 dotenv.config();
 
@@ -12,7 +11,7 @@ app.use(express.json());
 // Serve the frontend files
 app.use(express.static(__dirname));
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// App setup
 
 const MOCK_IMAGES = [
     "https://images.unsplash.com/photo-1559592413-7ce4ce67fe5c?auto=format&fit=crop&w=600&q=80",
@@ -23,9 +22,9 @@ const MOCK_IMAGES = [
 app.post('/generate-itinerary', async (req, res) => {
     try {
         const { departure, destinations, startDate, endDate, travelers, budget, transport, specs } = req.body;
-        
+
         const days = Math.round((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) || 7;
-        
+
         const prompt = `You are a professional travel agent. 
 Create exactly ONE customized tour itinerary for Vietnam with a STRICT 7-point structure:
 overview, schedule, transport, accommodation, activities, budgetBreakdown, practicalNotes.
@@ -121,13 +120,13 @@ Respond STRICTLY with valid JSON. Do not include markdown backticks like \`\`\`j
         }
 
         const data = await response.json();
-        
+
         // Extract content based on standard LLM chat completion format (adapt if Scitely differs slightly, e.g. data.choices[0].message.content)
         let textResult = data.choices ? data.choices[0].message.content : (data.response || data.text);
-        
+
         // Clean up markdown
         textResult = textResult.replace(/\`\`\`json/g, '').replace(/\`\`\`/g, '').trim();
-        
+
         const plan = JSON.parse(textResult);
         plan.img = MOCK_IMAGES[Math.floor(Math.random() * MOCK_IMAGES.length)];
 
