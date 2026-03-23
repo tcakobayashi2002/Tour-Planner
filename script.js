@@ -350,7 +350,7 @@ Respond STRICTLY with valid JSON. Do not include markdown backticks like \`\`\`j
   "travelAdvisories": ["Direct safety warning if any"]
 }`;
 
-        const url = 'https://api.scitely.org/v1/generate';
+        const url = 'https://api.scitely.com/v1/generate';
         const SCITELY_API_KEY = "sk-scitely-YOUR_API_KEY"; // User provided this key to hardcode
         
         try {
@@ -384,8 +384,8 @@ Respond STRICTLY with valid JSON. Do not include markdown backticks like \`\`\`j
             
             return plan;
         } catch (e) {
-            console.error("Fetch Error:", e);
-            throw new Error("Failed to communicate with Scitely API. Please try again.");
+            console.error("Fetch Error Detail:", e);
+            throw new Error(e.message || "Failed to communicate with Scitely API. Please try again.");
         }
     }
 
