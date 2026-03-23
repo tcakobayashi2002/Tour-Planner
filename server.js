@@ -99,14 +99,14 @@ Respond STRICTLY with valid JSON. Do not include markdown backticks like \`\`\`j
 
         console.log("Calling Scitely API for:", destinations);
 
-        const response = await fetch("https://api.scitely.com/v1/generate", {
+        const response = await fetch("https://api.scitely.com/v1/chat/completions", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${process.env.SCITELY_API_KEY}`
             },
             body: JSON.stringify({
-                model: "scitely-fluent", // Use appropriate Scitely model if specified, assuming standard here
+                model: "qwen3-32b", // Using the model from your Scitely dashboard
                 messages: [
                     { role: "system", content: "You are a professional travel agent. Output JSON only." },
                     { role: "user", content: prompt }
