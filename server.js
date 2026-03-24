@@ -99,41 +99,22 @@ Respond STRICTLY with valid JSON. Do not include markdown backticks like \`\`\`j
 
         console.log("Calling Scitely API for:", destinations);
 
-        const response = await fetch("https://api.scitely.com/v1/chat/completions", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.SCITELY_API_KEY}`,
-                'User-Agent': 'Curl/8.4.0', // Cloudflare often whitelists explicit cURL requests for APIs
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                model: "deepseek-chat", // Switched to deepseek model as requested
-                messages: [
-                    { role: "system", content: "You are a professional travel agent. Output JSON only." },
-                    { role: "user", content: prompt }
-                ]
-            })
+        // Required Scitely configuration via OpenAI SDK to bypass Cloudflare
+        const { OpenAI } = require("openai");
+        const client = new OpenAI({
+            apiKey: process.env.SCITELY_API_KEY,
+            baseURL: "https://api.scitely.com/v1"
         });
 
-        if (!response.ok) {
-            const errText = await response.text();
-            console.error("Scitely API Error Status:", response.status, errText);
+        const completion = await client.chat.completions.create({
+            model: "deepseek-chat",
+            messages: [
+                { role: "system", content: "You are a professional travel agent. Output JSON only." },
+                { role: "user", content: prompt }
+            ]
+        });
 
-            // Try to extract a specific error message if Scitely provides one
-            let parsedErr = "Unknown Error";
-            try {
-                const errJson = JSON.parse(errText);
-                parsedErr = errJson.error ? (errJson.error.message || errJson.error) : errText;
-            } catch (e) { parsedErr = errText; }
-
-            throw new Error(`Scitely API [${response.status}]: ${parsedErr}`);
-        }
-
-        const data = await response.json();
-
-        // Extract content based on standard LLM chat completion format (adapt if Scitely differs slightly, e.g. data.choices[0].message.content)
-        let textResult = data.choices ? data.choices[0].message.content : (data.response || data.text);
+        let textResult = completion.choices[0].message.content;
 
         // Clean up markdown
         textResult = textResult.replace(/\`\`\`json/g, '').replace(/\`\`\`/g, '').trim();
