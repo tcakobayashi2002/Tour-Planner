@@ -106,7 +106,7 @@ Respond STRICTLY with valid JSON. Do not include markdown backticks like \`\`\`j
                 'Authorization': `Bearer ${process.env.SCITELY_API_KEY}`
             },
             body: JSON.stringify({
-                model: "qwen3-32b", // Using the model from your Scitely dashboard
+                model: "deepseek-chat", // Switched to deepseek model as requested
                 messages: [
                     { role: "system", content: "You are a professional travel agent. Output JSON only." },
                     { role: "user", content: prompt }
@@ -115,8 +115,17 @@ Respond STRICTLY with valid JSON. Do not include markdown backticks like \`\`\`j
         });
 
         if (!response.ok) {
-            console.error("Scitely API Error Status:", response.status, response.statusText);
-            throw new Error(`Scitely API failed with status ${response.status}`);
+            const errText = await response.text();
+            console.error("Scitely API Error Status:", response.status, errText);
+
+            // Try to extract a specific error message if Scitely provides one
+            let parsedErr = "Unknown Error";
+            try {
+                const errJson = JSON.parse(errText);
+                parsedErr = errJson.error ? (errJson.error.message || errJson.error) : errText;
+            } catch (e) { parsedErr = errText; }
+
+            throw new Error(`Scitely API [${response.status}]: ${parsedErr}`);
         }
 
         const data = await response.json();
