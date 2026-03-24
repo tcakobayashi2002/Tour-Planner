@@ -34,7 +34,8 @@ Destinations: ${destinations || "Vietnam"}
 Duration: ${days} days
 Travelers: ${travelers}
 Total Budget Cap: $${budget}
-Transport Preference: ${transport}
+
+CRITICAL: The sum of costs in budgetBreakdown (transport + accommodation + activities + meals) MUST exactly fit within the Total Budget Cap ($${budget}). You must account for eating (meals) and travelling (transport) first, then allocate the remaining budget realistically to accommodation and activities.
 Themes & Specs: ${specs}
 
 Respond STRICTLY with valid JSON. Do not include markdown backticks like \`\`\`json.
@@ -103,7 +104,11 @@ Respond STRICTLY with valid JSON. Do not include markdown backticks like \`\`\`j
         const { OpenAI } = require("openai");
         const client = new OpenAI({
             apiKey: process.env.SCITELY_API_KEY,
-            baseURL: "https://api.scitely.com/v1"
+            baseURL: "https://api.scitely.com/v1",
+            defaultHeaders: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Accept": "application/json"
+            }
         });
 
         const completion = await client.chat.completions.create({

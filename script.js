@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const plan = await generateAIItinerary(depName, destsName, days, budget, travelers, transport, specs);
             const routeStats = await drawMapRoute(plan, transport);
 
-            renderPlan(plan, travelers, routeStats);
+            renderPlan(plan, travelers, routeStats, budget);
             renderNews(plan.localNews);
 
             itinerariesSection.classList.remove('hidden');
@@ -269,125 +269,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const itineraryCache = new Map();
 
     async function generateAIItinerary(dep, dests, days, budget, travelers, transport, specs) {
-        // Build an algorithmic itinerary instantly using the map coordinates
-        const totalDays = parseInt(days) || 3;
-        const totalTravelers = parseInt(travelers) || 2;
-        const budgetCap = parseInt(budget) || 2000;
-
-        // Safety fallback if user submitted empty destinations
-        const destArray = destinationsList.length > 0 ? destinationsList : [{ name: dep, coords: [105.78, 10.04] }];
-
-        let daysPerDest = Math.max(1, Math.floor(totalDays / destArray.length));
-        let schedule = [];
-        let currentDay = 1;
-        let transportCost = 0;
-
-        // Extract themes directly from the redesigned UI checkboxes
-        let selectedThemes = [];
-        document.querySelectorAll('.theme-check:checked').forEach(cb => selectedThemes.push(cb.value));
-        if (selectedThemes.length === 0) selectedThemes = ["General Sightseeing"];
-
-        destArray.forEach((destObj, index) => {
-            let destName = destObj.name;
-            let activities = [
-                `Explore the central district and local markets in ${destName}.`,
-                `Enjoy authentic local cuisine and street food.`,
-                `Visit the top cultural or nature attractions in the area.`
-            ];
-
-            // Add variety based on themes
-            if (selectedThemes.includes('Cultural')) activities.push(`Visit historical museums and ancient temples in ${destName}.`);
-            if (selectedThemes.includes('Adventure')) activities.push(`Book a day-trip hiking or boat adventure outside ${destName}.`);
-            if (selectedThemes.includes('Relaxation')) activities.push(`Spend the afternoon at a local spa or scenic cafe.`);
-
-            for (let i = 0; i < daysPerDest; i++) {
-                if (currentDay > totalDays) break;
-
-                let locationText = destName;
-                let trans = "Local Foot / Cab";
-                let cost = 30 * totalTravelers;
-
-                // If it's the first day of a NEW destination, add travel logic
-                if (i === 0 && index > 0) {
-                    locationText = `${destArray[index - 1].name} ➡️ ${destName}`;
-                    trans = transport === 'flight' ? '✈️ Flight' : (transport === 'train' ? '🚆 Train' : '🚌 Bus');
-                    if (transport === 'mixed') trans = '🚆 Train / Bus';
-                    cost += 50 * totalTravelers;
-                    transportCost += 50 * totalTravelers;
-                }
-
-                let dayActivities = activities.sort(() => 0.5 - Math.random()).slice(0, 3);
-
-                schedule.push({
-                    day: currentDay,
-                    location: locationText,
-                    activities: i === 0 ? [`Arrive and check-in to your hotel.`, ...dayActivities.slice(0, 2)] : dayActivities,
-                    transport: trans,
-                    cost_usd: cost
-                });
-                currentDay++;
-            }
+        const response = await fetch('/generate-itinerary', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                departure: dep,
+                destinations: dests,
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value,
+                travelers: travelers,
+                budget: budget,
+                transport: transport,
+                specs: specs
+            })
         });
 
-        // Fill remaining days if division wasn't clean
-        while (currentDay <= totalDays) {
-            let lastDest = destArray[destArray.length - 1].name;
-            schedule.push({
-                day: currentDay,
-                location: lastDest,
-                activities: ["Leisure day to explore hidden gems.", "Shopping for souvenirs and local crafts.", "Enjoy a grand final farewell dinner."],
-                transport: "Walking / Taxi",
-                cost_usd: 40 * totalTravelers
-            });
-            currentDay++;
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.error || "Failed to generate AI itinerary from server.");
         }
 
-        // Automatically drop map markers for each selected destination
-        let generatedMarkers = [];
-        destArray.forEach(d => {
-            if (d.coords) {
-                generatedMarkers.push({
-                    lat: d.coords[1], // coords[1] is lat in our array
-                    lng: d.coords[0], // coords[0] is lon in our array
-                    label: `Highlights of ${d.name}`
-                });
-            }
-        });
-
-        // Add a 1.5s artificial delay for the 'generating' UX effect
-        await new Promise(r => setTimeout(r, 1500));
-
-        return {
-            title: `Your ${totalDays}-Day Algorithmic Route`,
-            summary: `A carefully calculated itinerary specifically focusing on: ${selectedThemes.join(', ')}.`,
-            schedule: schedule,
-            budget: {
-                total: budgetCap,
-                breakdown: {
-                    "Transport": transportCost,
-                    "Accommodation": 40 * totalDays * totalTravelers,
-                    "Food": 30 * totalDays * totalTravelers,
-                    "Activities": 20 * totalDays * totalTravelers
-                }
-            },
-            culturalTips: [
-                "Always negotiate taxi fares beforehand or use the Grab app.",
-                "Dress modestly (cover shoulders/knees) when visiting temples and pagodas.",
-                "Try the street food where locals eat - it's the safest, cheapest, and most authentic!"
-            ],
-            foodRecs: [
-                "Phở bò (Classic Beef Noodle Soup)",
-                "Bánh Mì (Vietnamese Baguette Sandwich)",
-                "Cà phê sữa đá (Iconic Iced Milk Coffee)",
-                "Bún Chả (Grilled Pork and Noodles)"
-            ],
-            emergencyInfo: {
-                police: "113",
-                fire: "114",
-                ambulance: "115"
-            },
-            markers: generatedMarkers
-        };
+        return await response.json();
     }
 
     async function drawMapRoute(plan, transport) {
@@ -434,12 +338,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 marker.bindPopup(`
                     <div style="font-family: inherit;">
                         <strong style="color:var(--primary); font-size:1.1rem;">Day ${day.day}: ${day.location}</strong><br>
-                        <span style="font-size:0.9rem; margin-top:0.4rem; display:block;">🏨 <b>Hotel:</b> ${day.accommodation.name} ($${day.accommodation.price})</span>
-                        <span style="font-size:0.9rem;">🚌 <b>Transport:</b> $${day.transport.cost} (${day.transport.mode})</span>
+                        <span style="font-size:0.9rem; margin-top:0.4rem; display:block;">🏨 <b>Hotel:</b> ${day.accommodation?.name || 'Local Stay'} ($${day.accommodation?.price || 'Varies'})</span>
+                        <span style="font-size:0.9rem;">🚌 <b>Transport:</b> $${day.transport?.cost || '0'} (${day.transport?.mode || 'Local'})</span>
                         <hr style="margin:0.5rem 0; opacity:0.2;">
                         <b>Top Activities:</b><br>
                         <ul style="margin:0.4rem 0 0 1rem; padding:0; font-size:0.85rem;">
-                            ${day.activities.map(a => `<li>${a}</li>`).join('')}
+                            ${(day.activities || []).map(a => `<li>${a}</li>`).join('')}
                         </ul>
                     </div>
                 `);
@@ -453,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }).addTo(dayGroup);
 
                     // Tooltip with cost
-                    line.bindTooltip(`$${day.transport.cost} Leg`, { permanent: true, direction: 'center', className: 'leg-tooltip' });
+                    line.bindTooltip(`$${day.transport?.cost || '0'} Leg`, { permanent: true, direction: 'center', className: 'leg-tooltip' });
                 }
 
                 mainCoords.push(currentCoord);
@@ -487,7 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return { distance: "Calculated", duration: "Calculated" };
     }
 
-    function renderPlan(plan, travelers, routeStats) {
+    function renderPlan(plan, travelers, routeStats, userBudget) {
         const MOCK_IMAGES = [
             "https://images.unsplash.com/photo-1559592413-7ce4ce67fe5c?auto=format&fit=crop&w=600&q=80",
             "https://images.unsplash.com/photo-1540304892622-df38cebfba72?auto=format&fit=crop&w=600&q=80",
@@ -507,17 +411,20 @@ document.addEventListener('DOMContentLoaded', () => {
             return parseFloat(stripped) || 0;
         };
 
-        const totalEst = getNum(plan.budgetBreakdown.transport) +
-            getNum(plan.budgetBreakdown.accommodation) +
-            getNum(plan.budgetBreakdown.activities) +
-            getNum(plan.budgetBreakdown.meals);
+        const totalEst = getNum(plan.budgetBreakdown?.transport) +
+            getNum(plan.budgetBreakdown?.accommodation) +
+            getNum(plan.budgetBreakdown?.activities) +
+            getNum(plan.budgetBreakdown?.meals);
+
+        const remaining = userBudget ? (userBudget - totalEst) : 0;
+        const remainingColor = remaining >= 0 ? 'var(--primary)' : 'var(--accent)';
 
         const overviewHTML = `
             <div class="trip-overview-grid">
-                <div class="overview-item"><label>Days</label><span>${plan.overview.totalDays} Days</span></div>
-                <div class="overview-item"><label>Travelers</label><span>${travelers} People</span></div>
-                <div class="overview-item"><label>Style</label><span>${plan.overview.budgetEfficiency}</span></div>
-                <div class="overview-item"><label>Est Total</label><span style="color:var(--accent);">$${totalEst.toLocaleString()}</span></div>
+                <div class="overview-item"><label>Days</label><span>${plan.overview?.totalDays || '?'} Days</span></div>
+                <div class="overview-item"><label>Budget Cap</label><span>$${userBudget ? userBudget.toLocaleString() : '?'}</span></div>
+                <div class="overview-item"><label>Est. Cost</label><span>$${totalEst.toLocaleString()}</span></div>
+                <div class="overview-item"><label>Remaining</label><span style="color:${remainingColor}; font-weight:bold;">$${remaining.toLocaleString()}</span></div>
             </div>
         `;
 
@@ -530,10 +437,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="timeline-content">
                         <button class="view-map-btn" onclick="window.focusDayOnMap(${index})">📍 View Day on Map</button>
                         <h4 style="margin-top:1rem;">Activities</h4>
-                        <ul contenteditable="true">${day.activities.map(a => `<li>${a}</li>`).join('')}</ul>
+                        <ul contenteditable="true">${(day.activities || []).map(a => `<li>${a}</li>`).join('')}</ul>
                         <div class="financial-pills">
-                            <span class="fin-pill">🏨 ${day.accommodation.name} ($${day.accommodation.price})</span>
-                            <span class="fin-pill">🚌 ${day.transport.mode}: ${day.transport.time} ($${day.transport.cost})</span>
+                            <span class="fin-pill">🏨 ${day.accommodation?.name || 'Local Stay'} ($${day.accommodation?.price || 'Varies'}) <a href="https://www.agoda.com/search?text=${encodeURIComponent(day.location)}&priceMin=1&priceMax=${parseInt(day.accommodation?.price) || 150}" target="_blank" style="margin-left: 8px; color: var(--accent); font-weight: bold; text-decoration: underline; font-size: 0.8rem;">🔍 Search on Agoda</a></span>
+                            <span class="fin-pill">🚌 ${day.transport?.mode || 'Local'}: ${day.transport?.time || ''} ($${day.transport?.cost || '0'})</span>
                         </div>
                     </div>
                 </div>
@@ -546,7 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="structured-section">
                 <h4>✨ Activity Highlights</h4>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
-                    ${plan.activityHighlights.map(h => `
+                    ${(plan.activityHighlights || []).map(h => `
                         <div style="background:#f1f5f9; padding:0.75rem; border-radius:0.4rem;">
                             <b style="color:var(--accent); font-size:0.8rem; text-transform:uppercase;">${h.category}</b>
                             <p style="margin-top:0.25rem; font-size:0.9rem;">${h.details}</p>
@@ -561,10 +468,13 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="structured-section">
                 <h4>💰 Estimated Budget Breakdown</h4>
                 <div class="overall-costs-bar">
-                    <div class="cost-metric"><span>Hotel Total</span><strong>$${plan.budgetBreakdown.accommodation}</strong></div>
-                    <div class="cost-metric"><span>Transport</span><strong>$${plan.budgetBreakdown.transport}</strong></div>
-                    <div class="cost-metric"><span>Activities</span><strong>$${plan.budgetBreakdown.activities}</strong></div>
-                    <div class="cost-metric"><span>Meals</span><strong>$${plan.budgetBreakdown.meals}</strong></div>
+                    <div class="cost-metric"><span>Hotel Total</span><strong>$${plan.budgetBreakdown?.accommodation || '0'}</strong></div>
+                    <div class="cost-metric"><span>Transport</span><strong>$${plan.budgetBreakdown?.transport || '0'}</strong></div>
+                    <div class="cost-metric"><span>Activities</span><strong>$${plan.budgetBreakdown?.activities || '0'}</strong></div>
+                    <div class="cost-metric"><span>Meals</span><strong>$${plan.budgetBreakdown?.meals || '0'}</strong></div>
+                </div>
+                <div style="margin-top: 1rem; text-align: right; font-size: 0.85rem; color: #64748b;">
+                    * The AI has allocated meals, activities, and transport first to ensure your budget captures essential costs safely.
                 </div>
             </div>
         `;
@@ -574,13 +484,13 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="structured-section">
                 <h4>📖 Practical Notes</h4>
                 <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:0.5rem; padding:1.25rem;">
-                    <p><b>🌦️ Weather:</b> ${plan.practicalNotes.weather}</p>
+                    <p><b>🌦️ Weather:</b> ${plan.practicalNotes?.weather || 'N/A'}</p>
                     <p style="margin-top:0.75rem;"><b>🏮 Local Tips:</b></p>
-                    <ul>${plan.practicalNotes.localTips.map(t => `<li>${t}</li>`).join('')}</ul>
+                    <ul>${(plan.practicalNotes?.localTips || []).map(t => `<li>${t}</li>`).join('')}</ul>
                     <div style="margin-top:1rem; padding-top:1rem; border-top:1px dashed #cbd5e1; display:flex; gap:1.5rem; font-size:0.85rem;">
                         <span>📞 Police: <b>113</b></span>
                         <span>🚑 Medical: <b>115</b></span>
-                        <span>🛡️ Support: <b>${plan.practicalNotes.emergency.touristSupport}</b></span>
+                        <span>🛡️ Support: <b>${plan.practicalNotes?.emergency?.touristSupport || 'N/A'}</b></span>
                     </div>
                 </div>
             </div>
@@ -589,8 +499,8 @@ document.addEventListener('DOMContentLoaded', () => {
         card.innerHTML = `
             <div class="itinerary-header-banner" style="background-image:url('${plan.img}'); height:200px; background-size:cover; background-position:center; position:relative;">
                 <div style="position:absolute; bottom:0; left:0; right:0; padding:1.5rem; background:linear-gradient(transparent, rgba(0,0,0,0.8)); color:white;">
-                    <h2 style="font-size:2rem; margin:0;">${plan.overview.title}</h2>
-                    <p style="opacity:0.9; margin-top:0.25rem;">${plan.overview.description}</p>
+                    <h2 style="font-size:2rem; margin:0;">${plan.overview?.title || 'Your Custom Itinerary'}</h2>
+                    <p style="opacity:0.9; margin-top:0.25rem;">${plan.overview?.description || ''}</p>
                 </div>
             </div>
             <div class="itinerary-content">
