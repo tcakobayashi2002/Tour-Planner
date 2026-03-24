@@ -269,47 +269,125 @@ document.addEventListener('DOMContentLoaded', () => {
     const itineraryCache = new Map();
 
     async function generateAIItinerary(dep, dests, days, budget, travelers, transport, specs) {
-        // Create a unique cache key based on inputs
-        const cacheKey = JSON.stringify({ dep, dests, days, budget, travelers, transport, specs });
+        // Build an algorithmic itinerary instantly using the map coordinates
+        const totalDays = parseInt(days) || 3;
+        const totalTravelers = parseInt(travelers) || 2;
+        const budgetCap = parseInt(budget) || 2000;
 
-        if (itineraryCache.has(cacheKey)) {
-            console.log("Serving itinerary from cache!");
-            return itineraryCache.get(cacheKey);
-        }
+        // Safety fallback if user submitted empty destinations
+        const destArray = destinationsList.length > 0 ? destinationsList : [{ name: dep, coords: [105.78, 10.04] }];
 
-        const url = '/generate-itinerary'; // Auto-detects whether it's on localhost or Render
+        let daysPerDest = Math.max(1, Math.floor(totalDays / destArray.length));
+        let schedule = [];
+        let currentDay = 1;
+        let transportCost = 0;
 
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    departure: dep,
-                    destinations: dests,
-                    startDate: startInput.value,
-                    endDate: endInput.value,
-                    travelers,
-                    budget,
-                    transport,
-                    specs
-                })
-            });
+        // Extract themes directly from the redesigned UI checkboxes
+        let selectedThemes = [];
+        document.querySelectorAll('.theme-check:checked').forEach(cb => selectedThemes.push(cb.value));
+        if (selectedThemes.length === 0) selectedThemes = ["General Sightseeing"];
 
-            if (!response.ok) {
-                const errData = await response.json().catch(() => ({}));
-                throw new Error(errData.error || `Server responded with status: ${response.status}`);
+        destArray.forEach((destObj, index) => {
+            let destName = destObj.name;
+            let activities = [
+                `Explore the central district and local markets in ${destName}.`,
+                `Enjoy authentic local cuisine and street food.`,
+                `Visit the top cultural or nature attractions in the area.`
+            ];
+
+            // Add variety based on themes
+            if (selectedThemes.includes('Cultural')) activities.push(`Visit historical museums and ancient temples in ${destName}.`);
+            if (selectedThemes.includes('Adventure')) activities.push(`Book a day-trip hiking or boat adventure outside ${destName}.`);
+            if (selectedThemes.includes('Relaxation')) activities.push(`Spend the afternoon at a local spa or scenic cafe.`);
+
+            for (let i = 0; i < daysPerDest; i++) {
+                if (currentDay > totalDays) break;
+
+                let locationText = destName;
+                let trans = "Local Foot / Cab";
+                let cost = 30 * totalTravelers;
+
+                // If it's the first day of a NEW destination, add travel logic
+                if (i === 0 && index > 0) {
+                    locationText = `${destArray[index - 1].name} ➡️ ${destName}`;
+                    trans = transport === 'flight' ? '✈️ Flight' : (transport === 'train' ? '🚆 Train' : '🚌 Bus');
+                    if (transport === 'mixed') trans = '🚆 Train / Bus';
+                    cost += 50 * totalTravelers;
+                    transportCost += 50 * totalTravelers;
+                }
+
+                let dayActivities = activities.sort(() => 0.5 - Math.random()).slice(0, 3);
+
+                schedule.push({
+                    day: currentDay,
+                    location: locationText,
+                    activities: i === 0 ? [`Arrive and check-in to your hotel.`, ...dayActivities.slice(0, 2)] : dayActivities,
+                    transport: trans,
+                    cost_usd: cost
+                });
+                currentDay++;
             }
+        });
 
-            const data = await response.json();
-
-            // Save to cache for future repeat clicks
-            itineraryCache.set(cacheKey, data);
-
-            return data;
-        } catch (e) {
-            console.error("Fetch Error Detail:", e);
-            throw new Error(e.message || "Failed to communicate with the server. Please try again.");
+        // Fill remaining days if division wasn't clean
+        while (currentDay <= totalDays) {
+            let lastDest = destArray[destArray.length - 1].name;
+            schedule.push({
+                day: currentDay,
+                location: lastDest,
+                activities: ["Leisure day to explore hidden gems.", "Shopping for souvenirs and local crafts.", "Enjoy a grand final farewell dinner."],
+                transport: "Walking / Taxi",
+                cost_usd: 40 * totalTravelers
+            });
+            currentDay++;
         }
+
+        // Automatically drop map markers for each selected destination
+        let generatedMarkers = [];
+        destArray.forEach(d => {
+            if (d.coords) {
+                generatedMarkers.push({
+                    lat: d.coords[1], // coords[1] is lat in our array
+                    lng: d.coords[0], // coords[0] is lon in our array
+                    label: `Highlights of ${d.name}`
+                });
+            }
+        });
+
+        // Add a 1.5s artificial delay for the 'generating' UX effect
+        await new Promise(r => setTimeout(r, 1500));
+
+        return {
+            title: `Your ${totalDays}-Day Algorithmic Route`,
+            summary: `A carefully calculated itinerary specifically focusing on: ${selectedThemes.join(', ')}.`,
+            schedule: schedule,
+            budget: {
+                total: budgetCap,
+                breakdown: {
+                    "Transport": transportCost,
+                    "Accommodation": 40 * totalDays * totalTravelers,
+                    "Food": 30 * totalDays * totalTravelers,
+                    "Activities": 20 * totalDays * totalTravelers
+                }
+            },
+            culturalTips: [
+                "Always negotiate taxi fares beforehand or use the Grab app.",
+                "Dress modestly (cover shoulders/knees) when visiting temples and pagodas.",
+                "Try the street food where locals eat - it's the safest, cheapest, and most authentic!"
+            ],
+            foodRecs: [
+                "Phở bò (Classic Beef Noodle Soup)",
+                "Bánh Mì (Vietnamese Baguette Sandwich)",
+                "Cà phê sữa đá (Iconic Iced Milk Coffee)",
+                "Bún Chả (Grilled Pork and Noodles)"
+            ],
+            emergencyInfo: {
+                police: "113",
+                fire: "114",
+                ambulance: "115"
+            },
+            markers: generatedMarkers
+        };
     }
 
     async function drawMapRoute(plan, transport) {
