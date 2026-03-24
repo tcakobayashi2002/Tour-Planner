@@ -436,11 +436,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="timeline-date">Day ${day.day} • ${day.location}</div>
                     <div class="timeline-content">
                         <button class="view-map-btn" onclick="window.focusDayOnMap(${index})">📍 View Day on Map</button>
-                        <h4 style="margin-top:1rem;">Activities</h4>
+                        <div style="margin-top:1rem; display:flex; justify-content:space-between; align-items:center;">
+                            <h4 style="margin:0;">Activities</h4>
+                            <a href="https://www.klook.com/search/result/?query=${encodeURIComponent(day.location)}" target="_blank" style="font-size:0.8rem; font-weight:bold; text-decoration:underline; color:var(--primary);">🎟️ Find Local Tours</a>
+                        </div>
                         <ul contenteditable="true">${(day.activities || []).map(a => `<li>${a}</li>`).join('')}</ul>
                         <div class="financial-pills">
                             <span class="fin-pill">🏨 ${day.accommodation?.name || 'Local Stay'} ($${day.accommodation?.price || 'Varies'}) <a href="https://www.agoda.com/search?text=${encodeURIComponent(day.location)}&priceMin=1&priceMax=${parseInt(day.accommodation?.price) || 150}" target="_blank" style="margin-left: 8px; color: var(--accent); font-weight: bold; text-decoration: underline; font-size: 0.8rem;">🔍 Search on Agoda</a></span>
-                            <span class="fin-pill">🚌 ${day.transport?.mode || 'Local'}: ${day.transport?.time || ''} ($${day.transport?.cost || '0'})</span>
+                            <span class="fin-pill">🚌 ${day.transport?.mode || 'Local'}: ${day.transport?.time || ''} ($${day.transport?.cost || '0'}) ${
+                                (day.transport?.mode && !day.transport.mode.toLowerCase().includes('walk') && !day.transport.mode.toLowerCase().includes('taxi') && !day.transport.mode.toLowerCase().includes('foot')) 
+                                ? `<a href="https://12go.asia/en/search?s=${encodeURIComponent(day.location)}" target="_blank" style="margin-left: 8px; color: var(--accent); font-weight: bold; text-decoration: underline; font-size: 0.8rem;">🎫 Find Tickets</a>` 
+                                : ''
+                            }</span>
                         </div>
                     </div>
                 </div>
