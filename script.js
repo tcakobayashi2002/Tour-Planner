@@ -12,16 +12,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Progressive Disclosure (Toggle) ---
     const advToggle = document.getElementById('advancedToggle');
     const advOptions = document.getElementById('advancedOptions');
     if (advToggle) {
         advToggle.addEventListener('click', () => {
             advOptions.classList.toggle('hidden');
             if (advOptions.classList.contains('hidden')) {
-                advToggle.innerHTML = "<span>+ Provide Exact Budget & Preferences</span>";
+                advToggle.innerHTML = "<span>⚙️ Show Advanced Preferences</span>";
             } else {
-                advToggle.innerHTML = "<span>- Hide Preferences</span>";
+                advToggle.innerHTML = "<span>❌ Hide Advanced Preferences</span>";
             }
         });
     }

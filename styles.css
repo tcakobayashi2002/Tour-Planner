@@ -458,19 +458,64 @@ textarea:focus {
     border-color: var(--primary-light);
 }
 
-/* Advanced Options Toggle */
-.advanced-toggle {
-    color: var(--primary);
-    font-size: 0.95rem;
-    font-weight: 600;
-    text-align: center;
-    cursor: pointer;
-    margin: 0.5rem 0 1rem 0;
-    transition: var(--transition);
+/* Redesigned Form Sections */
+.form-section-group {
+    margin-bottom: 1.5rem;
 }
 
-.advanced-toggle:hover {
+.form-section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
     color: var(--primary-dark);
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.form-divider {
+    border: 0;
+    height: 1px;
+    background: #e2e8f0;
+    margin: 2rem 0;
+}
+
+.theme-checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.theme-check-label {
+    cursor: pointer;
+    background: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid #cbd5e1;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.theme-check-label:hover {
+    border-color: var(--primary);
+    background: rgba(5, 150, 105, 0.05);
+}
+
+.theme-check-label input:checked {
+    accent-color: var(--primary);
+}
+
+/* Advanced Options Toggle */
+.advanced-toggle-wrapper {
+    margin-top: 1rem;
+}
+
+.advanced-toggle-btn:hover {
+    box-shadow: var(--shadow-sm);
+    background-color: var(--primary);
 }
 
 /* Range Slider */

@@ -66,102 +66,119 @@
                 <p class="section-subtitle text-center">Tell us what you're looking for, and we'll handle the rest.</p>
 
                 <form id="tourForm" class="tour-form">
-                    <div class="form-grid">
-                        <!-- Departure & Dates -->
-                        <div class="form-group position-relative">
-                            <label>Fixed Departure City</label>
-                            <div class="fixed-departure" style="padding: 0.75rem 1rem; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border-radius: 0.5rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                                📍 Can Tho City, Vietnam
+                    
+                    <!-- Section 1: The Route & Dates -->
+                    <div class="form-section-group">
+                        <h3 class="form-section-title">📍 Step 1: Your Route & Timeline</h3>
+                        <div class="form-grid">
+                            
+                            <!-- Departure -->
+                            <div class="form-group position-relative">
+                                <label>Fixed Departure Hub</label>
+                                <div class="fixed-departure" style="padding: 0.85rem 1rem; background: rgba(5, 150, 105, 0.05); border: 1px solid rgba(5, 150, 105, 0.2); color: var(--primary-dark); border-radius: 0.5rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">
+                                    🛫 Can Tho City, Vietnam
+                                </div>
+                                <input type="hidden" id="departureCity" name="departureCity" value="Can Tho City, Vietnam">
                             </div>
-                            <input type="hidden" id="departureCity" name="departureCity" value="Can Tho City, Vietnam">
-                        </div>
-                        <div class="form-group row-group">
-                            <div class="sub-group">
-                                <label for="startDate">Start Date</label>
-                                <input type="date" id="startDate" name="startDate" required>
-                            </div>
-                            <div class="sub-group">
-                                <label for="endDate">End Date</label>
-                                <input type="date" id="endDate" name="endDate" required>
-                            </div>
-                        </div>
 
-                        <!-- Destinations (Input with Suggestions) -->
-                        <div class="form-group full-width position-relative">
-                            <label for="destinationInput">Preferred Destinations</label>
-                            <div class="destination-input-container">
-                                <input type="text" id="destinationInput" placeholder="Type a destination..."
-                                    autocomplete="off">
-                                <button type="button" id="addDestBtn" class="btn btn-outline"
-                                    style="padding: 0 1rem;">Add</button>
+                            <!-- Destinations -->
+                            <div class="form-group position-relative">
+                                <label for="destinationInput">Where to Next?</label>
+                                <div class="destination-input-container" style="display:flex; gap:0.5rem;">
+                                    <input type="text" id="destinationInput" placeholder="Add cities (e.g., Hanoi)..." autocomplete="off" style="flex:1;">
+                                    <button type="button" id="addDestBtn" class="btn btn-primary" style="padding: 0 1.25rem;">Add</button>
+                                </div>
+                                <ul id="destinationSuggestions" class="suggestions-list hidden"></ul>
+                                <div class="selected-destinations" id="selectedDestinations" style="margin-top:0.75rem;"></div>
+                                <input type="hidden" name="destinations" id="hiddenDestinations">
                             </div>
-                            <ul id="destinationSuggestions" class="suggestions-list hidden"></ul>
-                            <div class="selected-destinations" id="selectedDestinations"></div>
-                            <input type="hidden" name="destinations" id="hiddenDestinations">
-                        </div>
 
-                        <!-- Advanced Options Toggle -->
-                        <div class="advanced-toggle" id="advancedToggle">
-                            <span>+ Provide Exact Budget & Preferences</span>
-                        </div>
+                            <!-- Dates -->
+                            <div class="form-group row-group full-width" style="margin-top: 0.5rem;">
+                                <div class="sub-group">
+                                    <label for="startDate">📅 Start Date</label>
+                                    <input type="date" id="startDate" name="startDate" required>
+                                </div>
+                                <div class="sub-group">
+                                    <label for="endDate">📅 End Date</label>
+                                    <input type="date" id="endDate" name="endDate" required>
+                                </div>
+                            </div>
 
-                        <div class="advanced-options hidden" id="advancedOptions">
+                        </div>
+                    </div>
+
+                    <hr class="form-divider">
+
+                    <!-- Section 2: Core Details -->
+                    <div class="form-section-group">
+                        <h3 class="form-section-title">👥 Step 2: Trip Profile</h3>
+                        <div class="form-grid">
                             <!-- Travelers & Budget -->
-                            <div class="form-group row-group">
-                                <div class="sub-group">
-                                    <label for="travelersNum">Travelers</label>
-                                    <input type="number" id="travelersNum" name="travelersNum" min="1" max="50"
-                                        value="2" required>
-                                </div>
-                                <div class="sub-group">
-                                    <label for="budgetCap">Budget Cap (Total USD): $<span
-                                            id="budgetAmount">2000</span></label>
-                                    <div class="range-container">
-                                        <input type="range" id="budgetCap" name="budgetCap" min="100" max="10000"
-                                            step="100" value="2000">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Preferences -->
-                            <div class="form-group row-group">
-                                <div class="sub-group">
-                                    <label for="transportPref">Transport Medium</label>
-                                    <select id="transportPref" name="transportPref">
-                                        <option value="flight">✈️ Flight (Fastest)</option>
-                                        <option value="train">🚆 Train (Scenic)</option>
-                                        <option value="bus">🚌 Bus (Budget)</option>
-                                        <option value="car">🚗 Private Car / Driving</option>
-                                        <option value="mixed" selected>🔄 Mixed (Best of All)</option>
-                                    </select>
+                            <div class="form-group">
+                                <label for="travelersNum">Number of Travelers</label>
+                                <div style="position:relative;">
+                                    <input type="number" id="travelersNum" name="travelersNum" min="1" max="50" value="2" required style="padding-left:2.5rem;">
+                                    <span style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); opacity:0.5;">👤</span>
                                 </div>
                             </div>
 
                             <div class="form-group">
-                                <label>Travel Themes & Specialization</label>
-                                <div
-                                    style="display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.5rem; margin-bottom: 0.75rem;">
-                                    <label style="cursor: pointer;"><input type="checkbox" value="Cultural"
-                                            class="theme-check"> Cultural</label>
-                                    <label style="cursor: pointer;"><input type="checkbox" value="Adventure"
-                                            class="theme-check"> Adventure</label>
-                                    <label style="cursor: pointer;"><input type="checkbox" value="Family-friendly"
-                                            class="theme-check"> Family</label>
-                                    <label style="cursor: pointer;"><input type="checkbox" value="Food Tours"
-                                            class="theme-check"> Foodie</label>
+                                <label for="budgetCap">Total Budget: <strong style="color:var(--accent); font-size:1.1rem;">$<span id="budgetAmount">2000</span></strong></label>
+                                <div class="range-container" style="margin-top:0.5rem;">
+                                    <input type="range" id="budgetCap" name="budgetCap" min="100" max="10000" step="100" value="2000">
                                 </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="otherSpecs">Other Specifications</label>
-                                <textarea id="otherSpecs" name="otherSpecs" rows="1"
-                                    placeholder="e.g., prefer halal food..."></textarea>
+                                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#64748b; margin-top:0.25rem;">
+                                    <span>$100 (Backpacker)</span>
+                                    <span>$10k+ (Luxury)</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-submit full-width" id="generateBtn">
-                        <span class="btn-text">Generate My Itinerary <span class="sparkle">✨</span></span>
+                    <!-- Advanced Options Toggle -->
+                    <div class="advanced-toggle-wrapper text-center mt-4 mb-2">
+                        <button type="button" class="btn btn-outline advanced-toggle-btn" id="advancedToggle" style="border-radius:2rem; padding: 0.5rem 1.5rem; font-size:0.9rem;">
+                            <span>⚙️ Show Advanced Preferences</span>
+                        </button>
+                    </div>
+
+                    <div class="advanced-options hidden" id="advancedOptions">
+                        <div class="form-section-group" style="background:#f8fafc; padding:1.5rem; border-radius:0.75rem; border:1px solid #e2e8f0;">
+                            
+                            <!-- Preferences -->
+                            <div class="form-group full-width">
+                                <label for="transportPref">🚌 Primary Transport Medium</label>
+                                <select id="transportPref" name="transportPref" style="background:white;">
+                                    <option value="flight">✈️ Flight (Fastest, High Cost)</option>
+                                    <option value="train">🚆 Train (Scenic, Medium Cost)</option>
+                                    <option value="bus">🚌 Bus (Budget-friendly, Slow)</option>
+                                    <option value="car">🚗 Private Car / Driving</option>
+                                    <option value="mixed" selected>🔄 Mixed (Best algorithmically selected)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group full-width mt-4">
+                                <label>🎯 Travel Themes & Focus</label>
+                                <div class="theme-checkbox-grid">
+                                    <label class="theme-check-label"><input type="checkbox" value="Cultural" class="theme-check"> 🏛️ Cultural</label>
+                                    <label class="theme-check-label"><input type="checkbox" value="Adventure" class="theme-check"> 🧗 Adventure</label>
+                                    <label class="theme-check-label"><input type="checkbox" value="Family-friendly" class="theme-check"> 👨‍👩‍👧 Family</label>
+                                    <label class="theme-check-label"><input type="checkbox" value="Food Tours" class="theme-check"> 🍜 Foodie</label>
+                                    <label class="theme-check-label"><input type="checkbox" value="Relaxation" class="theme-check"> 💆 Relaxation</label>
+                                    <label class="theme-check-label"><input type="checkbox" value="Nightlife" class="theme-check"> 🪩 Nightlife</label>
+                                </div>
+                            </div>
+
+                            <div class="form-group full-width mt-4">
+                                <label for="otherSpecs">✍️ Other Specific Needs</label>
+                                <textarea id="otherSpecs" name="otherSpecs" rows="2" placeholder="e.g., 'I want halal food only', 'Wheelchair accessible hotels', 'Avoid early morning flights'..." style="background:white;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-submit full-width" id="generateBtn" style="margin-top: 2rem; padding: 1rem; font-size:1.1rem;">
+                        <span class="btn-text">Generate My AI Itinerary <span class="sparkle">✨</span></span>
                         <span class="loader hidden"></span>
                     </button>
                 </form>
